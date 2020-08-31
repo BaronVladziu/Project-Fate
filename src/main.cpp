@@ -1,48 +1,72 @@
-#include <GL/freeglut.h> 
-#include <stdlib.h> 
+#include "header.h"
 
-int x, y;
-float r,g,b;
+int is_fullscreen = 0;
+int pos_x = 50;
+int pos_y = 50;
 
-void idle()
-{                      
-	x = rand()%640; 
-	y = rand()%480;
+void display(void) {
+    glClearColor(1,1,1,0);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-	r=(float)((rand() % 9))/8;
-	g=(float)((rand() % 9))/8;
-	b=(float)((rand() % 9))/8;
+    glBegin(GL_TRIANGLES);
+    {
+        glColor3f(1,0,0);
+        glVertex2f(0,0);
 
-	glutPostRedisplay();
+        glColor3f(0,1,0);
+        glVertex2f(.5,0);
+
+        glColor3f(0,0,1);
+        glVertex2f(.5,.5);
+    }
+    glEnd();
+
+    glutSwapBuffers();
 }
 
-void magic_dots(void)
-{
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0.0, 640.0, 0.0, 480.0);
-
-	glColor3f(r,g,b); 	
-
-	glBegin(GL_POINTS);
-	glVertex2i (x,y);
-	glEnd();
-
-	glFlush();	
+void idle(void) {
+    if (!is_fullscreen) {
+        pos_x = glutGet(GLUT_WINDOW_X);
+        pos_y = glutGet(GLUT_WINDOW_Y);
+    }
 }
 
+void toggle_fullscreen() {
+    if (is_fullscreen) {
+        glutReshapeWindow(800, 600);
+        glutPositionWindow(pos_x, pos_y);
+        log("Set window position to: ", pos_x, " ", pos_y);
+    } else {
+        glutFullScreen();
+    }
+    is_fullscreen = !is_fullscreen;
+}
 
-int main(int argc,char** argv)
-{
-	glutInit(&argc,argv);
-	glutInitDisplayMode(GLUT_SINGLE);
-	glutInitWindowSize(640, 480);
-	glutCreateWindow("Randomly generated points");
-	glClearColor(0,0,0,0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glutDisplayFunc(magic_dots);
-	glutIdleFunc(idle);
-	glutMainLoop();
-	
-	return 0;
+void reshape(int x, int y) {
+    log("Window resized to: ", x, " ", y);
+}
+
+void keyboard(unsigned char key, int x, int y) {
+    switch (key) {
+        case 'f':
+            toggle_fullscreen();
+            break;
+    }
+}
+
+int main(int argc, char *argv[]) {
+    glutInit(&argc, argv);
+
+    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+    glutCreateWindow("My Game");
+    glutReshapeWindow(800, 600);
+    glutPositionWindow(pos_x, pos_y);
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+    glutIdleFunc(idle);
+    glutKeyboardFunc(keyboard);
+
+    glutMainLoop();
+
+    return 0;
 }
